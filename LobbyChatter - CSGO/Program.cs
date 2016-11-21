@@ -49,6 +49,8 @@ namespace LobbyChatter___CSGO
             manager.Subscribe<SteamUser.LoggedOnCallback>(OnLoggedOn);
             manager.Subscribe<SteamUser.LoggedOffCallback>(OnLoggedOff);
 
+            manager.Subscribe<SteamUser.UpdateMachineAuthCallback>(OnMachineAuth);
+
             manager.Subscribe<SteamGameCoordinator.MessageCallback>(OnMessageCall);
 
             isRunning = true;
@@ -77,27 +79,26 @@ namespace LobbyChatter___CSGO
                 Console.WriteLine("GameCoordinator is welcoming us!");
                 Thread.Sleep(1000);
 
+
                 // Time to join the Lobby
                 ClientGCMsgProtobuf<CMsgClientMMSJoinLobby> join = new ClientGCMsgProtobuf<CMsgClientMMSJoinLobby>(6603, 64)
                 {
                     Body =
                     {
                         app_id = 730,
-                        persona_name = "",
+                        persona_name = "Lachkick",
                         steam_id_lobby = lobbyid
                     }
                 };
-                Console.WriteLine(new object[] { "AppID: ", join.Body.app_id, " PersonName: ", join.Body.persona_name, " Steam_Id_Lobby", join.Body.steam_id_lobby });
+                Console.WriteLine(string.Concat(new object[] { "AppID: ", join.Body.app_id, " PersonName: ", join.Body.persona_name, " Steam_Id_Lobby", join.Body.steam_id_lobby }));
                 gameCoordinator.Send(join, 730);
-                Thread.Sleep(1000);
-
-                CMsgClientMMSSendLobbyChatMsg send = new CMsgClientMMSSendLobbyChatMsg()
-                {
-                    app_id = 730,
-                    steam_id_target = 0,
-                    steam_id_lobby = lobbyid,
-                    lobby_message = 
-                };
+                //CMsgClientMMSSendLobbyChatMsg send = new CMsgClientMMSSendLobbyChatMsg()
+                //{
+                //    app_id = 730,
+                //    steam_id_target = 0,
+                //    steam_id_lobby = lobbyid,
+                //    lobby_message = 
+                //};
             }
             else if (callback.EMsg == 6614)
             {
@@ -120,6 +121,12 @@ namespace LobbyChatter___CSGO
                 //message.Body.lobby_message = 
 
                 //gameCoordinator.Send(join, 730);
+            } else if (callback.EMsg == 9110)
+            {
+                ClientGCMsgProtobuf < CMsgGCCStrike15_v2_MatchmakingClient2GCHello > re = new ClientGCMsgProtobuf<CMsgGCCStrike15_v2_MatchmakingClient2GCHello>(callback.Message);
+                Console.WriteLine("k_EMsgGCCStrike15_v2_MatchmakingGC2ClientHello in (9110).");
+
+                Thread.Sleep(1000);
             } else
             {
                 Console.WriteLine("We got response. From " + callback.EMsg);
