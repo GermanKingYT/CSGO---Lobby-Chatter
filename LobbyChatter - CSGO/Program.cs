@@ -77,13 +77,52 @@ namespace LobbyChatter___CSGO
                 Console.WriteLine("GameCoordinator is welcoming us!");
                 Thread.Sleep(1000);
 
+                // Time to join the Lobby
+                ClientGCMsgProtobuf<CMsgClientMMSJoinLobby> join = new ClientGCMsgProtobuf<CMsgClientMMSJoinLobby>(6603, 64)
+                {
+                    Body =
+                    {
+                        app_id = 730,
+                        persona_name = "",
+                        steam_id_lobby = lobbyid
+                    }
+                };
+                Console.WriteLine(new object[] { "AppID: ", join.Body.app_id, " PersonName: ", join.Body.persona_name, " Steam_Id_Lobby", join.Body.steam_id_lobby });
+                gameCoordinator.Send(join, 730);
+                Thread.Sleep(1000);
+
                 CMsgClientMMSSendLobbyChatMsg send = new CMsgClientMMSSendLobbyChatMsg()
                 {
                     app_id = 730,
                     steam_id_target = 0,
                     steam_id_lobby = lobbyid,
                     lobby_message = 
-                }; 
+                };
+            }
+            else if (callback.EMsg == 6614)
+            {
+                ClientGCMsgProtobuf<CMsgClientMMSLobbyChatMsg> responseChat = new ClientGCMsgProtobuf<CMsgClientMMSLobbyChatMsg>(callback.Message);
+                byte[] message = responseChat.Body.lobby_message;
+                Console.WriteLine("CHAT: " + System.Text.Encoding.UTF8.GetString(message));
+            } else if (callback.EMsg == 6604)
+            {
+                // We joined the Lobby!
+                ClientGCMsgProtobuf<CMsgClientMMSJoinLobbyResponse> responseJoin = new ClientGCMsgProtobuf<CMsgClientMMSJoinLobbyResponse>(callback.Message);
+                ulong steamid_owner = responseJoin.Body.steam_id_owner;
+                Console.WriteLine("We joined the Lobby.\nSteamID of the Owner: " + steamid_owner);
+
+
+                //ClientGCMsgProtobuf<CMsgClientMMSSendLobbyChatMsg> message = new ClientGCMsgProtobuf<CMsgClientMMSSendLobbyChatMsg>(6603, 64);
+
+                //message.Body.app_id = 730;
+                //message.Body.steam_id_lobby = 109775243749874934;
+                //message.Body.steam_id_target = 0;
+                //message.Body.lobby_message = 
+
+                //gameCoordinator.Send(join, 730);
+            } else
+            {
+                Console.WriteLine("We got response. From " + callback.EMsg);
             }
         }
     
