@@ -29,6 +29,7 @@ namespace LobbyChatter___CSGO
         [STAThread]
         static void Main()
         {
+
             Console.WriteLine("CSGO Lobby Chatter ©Radat.");
             Console.WriteLine("");
             Console.WriteLine("");
@@ -72,26 +73,23 @@ namespace LobbyChatter___CSGO
 
         static void OnMessageCall(SteamGameCoordinator.MessageCallback callback)
         {
+            Console.WriteLine("DEBUG: MessageCallback " + callback.EMsg); 
 
             if (callback.EMsg == 4004)
             {
                 new ClientGCMsgProtobuf<CMsgClientWelcome>(callback.Message);
                 Console.WriteLine("GameCoordinator is welcoming us!");
-                Thread.Sleep(1000);
 
+                
+                var join = new ClientGCMsgProtobuf<CMsgClientMMSJoinLobby>(6603);
+                join.Body.app_id = 730;
+                join.Body.persona_name = "Name";
+                join.Body.steam_id_lobby = lobbyid;
 
-                // Time to join the Lobby
-                ClientGCMsgProtobuf<CMsgClientMMSJoinLobby> join = new ClientGCMsgProtobuf<CMsgClientMMSJoinLobby>(6603, 64)
-                {
-                    Body =
-                    {
-                        app_id = 730,
-                        persona_name = "Lachkick",
-                        steam_id_lobby = lobbyid
-                    }
-                };
                 Console.WriteLine(string.Concat(new object[] { "AppID: ", join.Body.app_id, " PersonName: ", join.Body.persona_name, " Steam_Id_Lobby", join.Body.steam_id_lobby }));
                 gameCoordinator.Send(join, 730);
+                
+                // Time to join the Lobby
                 //CMsgClientMMSSendLobbyChatMsg send = new CMsgClientMMSSendLobbyChatMsg()
                 //{
                 //    app_id = 730,
@@ -102,31 +100,21 @@ namespace LobbyChatter___CSGO
             }
             else if (callback.EMsg == 6614)
             {
-                ClientGCMsgProtobuf<CMsgClientMMSLobbyChatMsg> responseChat = new ClientGCMsgProtobuf<CMsgClientMMSLobbyChatMsg>(callback.Message);
+                var responseChat = new ClientGCMsgProtobuf<CMsgClientMMSLobbyChatMsg>(callback.Message);
                 byte[] message = responseChat.Body.lobby_message;
                 Console.WriteLine("CHAT: " + System.Text.Encoding.UTF8.GetString(message));
             } else if (callback.EMsg == 6604)
             {
                 // We joined the Lobby!
-                ClientGCMsgProtobuf<CMsgClientMMSJoinLobbyResponse> responseJoin = new ClientGCMsgProtobuf<CMsgClientMMSJoinLobbyResponse>(callback.Message);
+                var responseJoin = new ClientGCMsgProtobuf<CMsgClientMMSJoinLobbyResponse>(callback.Message);
                 ulong steamid_owner = responseJoin.Body.steam_id_owner;
                 Console.WriteLine("We joined the Lobby.\nSteamID of the Owner: " + steamid_owner);
-
-
-                //ClientGCMsgProtobuf<CMsgClientMMSSendLobbyChatMsg> message = new ClientGCMsgProtobuf<CMsgClientMMSSendLobbyChatMsg>(6603, 64);
-
-                //message.Body.app_id = 730;
-                //message.Body.steam_id_lobby = 109775243749874934;
-                //message.Body.steam_id_target = 0;
-                //message.Body.lobby_message = 
-
-                //gameCoordinator.Send(join, 730);
+                
             } else if (callback.EMsg == 9110)
             {
-                ClientGCMsgProtobuf < CMsgGCCStrike15_v2_MatchmakingClient2GCHello > re = new ClientGCMsgProtobuf<CMsgGCCStrike15_v2_MatchmakingClient2GCHello>(callback.Message);
+                var re = new ClientGCMsgProtobuf<CMsgGCCStrike15_v2_MatchmakingClient2GCHello>(callback.Message);
                 Console.WriteLine("k_EMsgGCCStrike15_v2_MatchmakingGC2ClientHello in (9110).");
-
-                Thread.Sleep(1000);
+                
             } else
             {
                 Console.WriteLine("We got response. From " + callback.EMsg);
@@ -224,10 +212,12 @@ namespace LobbyChatter___CSGO
                 game_id = (ulong)new GameID(730)
             };
             msg.Body.games_played.Add(item);
+
             steamClient.Send(msg);
             Thread.Sleep(5000);
-            ClientGCMsgProtobuf<CMsgClientHello> protobuf2 = new ClientGCMsgProtobuf<CMsgClientHello>(4006, 64);
-            gameCoordinator.Send(protobuf2, 730);
+
+            var clienthello = new ClientGCMsgProtobuf<CMsgClientHello>(4006);
+            gameCoordinator.Send(clienthello, 730);
         }
 
         static void OnLoggedOff(SteamUser.LoggedOffCallback callback)
