@@ -79,7 +79,7 @@ namespace LobbyChatter___CSGO
 
                 CMsgClientMMSSendLobbyChatMsg send = new CMsgClientMMSSendLobbyChatMsg()
                 {
-                    app_id = 720,
+                    app_id = 730,
                     steam_id_target = 0,
                     steam_id_lobby = lobbyid,
                     lobby_message = 
