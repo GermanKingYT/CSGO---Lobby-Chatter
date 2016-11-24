@@ -18,7 +18,9 @@ namespace LobbyChatter___CSGO
         static SteamGameCoordinator gameCoordinator;
 
         static SteamUser steamUser;
-        
+
+        static Handler _handler;
+
         static string username, password;
         static string authCode, twoFactorAuth;
 
@@ -43,6 +45,8 @@ namespace LobbyChatter___CSGO
             manager = new CallbackManager(steamClient);
             steamUser = steamClient.GetHandler<SteamUser>();
             gameCoordinator = steamClient.GetHandler<SteamGameCoordinator>();
+            steamClient.AddHandler(new Handler());
+            _handler = steamClient.GetHandler<Handler>();
 
             manager.Subscribe<SteamClient.ConnectedCallback>(OnConnected);
             manager.Subscribe<SteamClient.DisconnectedCallback>(OnDisconnected);
@@ -54,11 +58,13 @@ namespace LobbyChatter___CSGO
 
             manager.Subscribe<SteamGameCoordinator.MessageCallback>(OnMessageCall);
 
+            manager.Subscribe<Handler.JoinCallback>(OnLobbyJoinCallback);
+
             isRunning = true;
 
-
-            Console.WriteLine("LobbyID to Chat?");
-            lobbyid = ulong.Parse(Console.ReadLine());
+            // Ausgeklammert, weil du das dem Handler geben musst.
+            /*Console.WriteLine("LobbyID to Chat?");
+            lobbyid = ulong.Parse(Console.ReadLine());*/
 
             Console.WriteLine("Connecting to Steam...");
             
@@ -71,6 +77,12 @@ namespace LobbyChatter___CSGO
         
         }
 
+        static void OnLobbyJoinCallback(Handler.JoinCallback callback)
+        {
+            Console.WriteLine("JoinCallback Response: {0}", callback.Result);
+
+        }
+
         static void OnMessageCall(SteamGameCoordinator.MessageCallback callback)
         {
             Console.WriteLine("DEBUG: MessageCallback " + callback.EMsg); 
@@ -80,14 +92,7 @@ namespace LobbyChatter___CSGO
                 new ClientGCMsgProtobuf<CMsgClientWelcome>(callback.Message);
                 Console.WriteLine("GameCoordinator is welcoming us!");
 
-                
-                var join = new ClientGCMsgProtobuf<CMsgClientMMSJoinLobby>(6603);
-                join.Body.app_id = 730;
-                join.Body.persona_name = "Name";
-                join.Body.steam_id_lobby = lobbyid;
-
-                Console.WriteLine(string.Concat(new object[] { "AppID: ", join.Body.app_id, " PersonName: ", join.Body.persona_name, " Steam_Id_Lobby", join.Body.steam_id_lobby }));
-                gameCoordinator.Send(join, 730);
+                _handler.JoinLobby();
                 
                 // Time to join the Lobby
                 //CMsgClientMMSSendLobbyChatMsg send = new CMsgClientMMSSendLobbyChatMsg()
